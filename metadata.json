@@ -1,0 +1,8 @@
+{
+  "name": "Remix: 萬用農民曆系統",
+  "description": "融合古典美學與現代科技的萬用農民曆系統。提供精準的每日宜忌、干支五行、吉神凶神、吉時方位，並結合 Gemini AI 提供智慧擇吉、每日生肖運勢、古典求籤解籤與 24 節氣開運百科。",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
