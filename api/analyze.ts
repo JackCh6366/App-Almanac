@@ -1,15 +1,31 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { FORTUNE_LOTS } from "../src/data/fortuneLots";
 
-// Initialize Gemini Client
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || "",
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
+function cleanKey(key: string | undefined): string {
+  if (!key) return "";
+  return key.trim().replace(/^["']|["']$/g, "");
+}
+
+let aiInstance: GoogleGenAI | null = null;
+
+function getGeminiClient(): GoogleGenAI {
+  if (!aiInstance) {
+    const rawKey = process.env.GEMINI_API_KEY;
+    const apiKey = cleanKey(rawKey);
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is not configured on the server.");
     }
+    aiInstance = new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        }
+      }
+    });
   }
-});
+  return aiInstance;
+}
 
 // Helper to convert Google GenAI Schema to standard JSON Schema format for NVIDIA
 function cleanSchema(schema: any): any {
@@ -593,10 +609,13 @@ ${customQuestion ? `使用者具體求問問題："${customQuestion}"` : ""}
     let resultText = "";
 
     if (selectedProvider === 'gemini') {
-      const geminiKey = process.env.GEMINI_API_KEY;
+      const rawKey = process.env.GEMINI_API_KEY;
+      const geminiKey = cleanKey(rawKey);
       if (!geminiKey) {
         throw new Error("GEMINI_API_KEY is not configured on the server.");
       }
+
+      const ai = getGeminiClient();
 
       const config: any = {
         systemInstruction,
@@ -615,7 +634,8 @@ ${customQuestion ? `使用者具體求問問題："${customQuestion}"` : ""}
 
       resultText = response.text || "";
     } else if (selectedProvider === 'nvidia') {
-      const nvidiaKey = process.env.NVIDIA_API_KEY;
+      const rawNvidiaKey = process.env.NVIDIA_API_KEY;
+      const nvidiaKey = cleanKey(rawNvidiaKey);
       if (!nvidiaKey) {
         throw new Error("NVIDIA_API_KEY is not configured on the server.");
       }

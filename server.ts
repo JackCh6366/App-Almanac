@@ -9,7 +9,7 @@ import analyzeHandler from "./api/analyze";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
 
 app.use(express.json());
 app.post("/api/analyze", analyzeHandler);
