@@ -21,7 +21,11 @@ const ACTIVITIES = [
 
 const ZODIACS = ["鼠", "牛", "虎", "兔", "龍", "蛇", "馬", "羊", "猴", "雞", "狗", "豬"];
 
-export default function Planner() {
+interface PlannerProps {
+  aiProvider: 'gemini' | 'nvidia';
+}
+
+export default function Planner({ aiProvider }: PlannerProps) {
   const [activity, setActivity] = useState("嫁娶");
   const [year, setYear] = useState(2026);
   const [month, setMonth] = useState(6);
@@ -37,10 +41,14 @@ export default function Planner() {
     setResult(null);
 
     try {
-      const response = await fetch("/api/almanac/pick-date", {
+      const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ activity, year, month, zodiac }),
+        body: JSON.stringify({
+          provider: aiProvider,
+          task: "pick-date",
+          payload: { activity, year, month, zodiac }
+        }),
       });
 
       if (!response.ok) {

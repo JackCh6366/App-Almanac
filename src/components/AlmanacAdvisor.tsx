@@ -10,6 +10,7 @@ import { getAlmanac } from "../utils/almanacEngine";
 
 interface AlmanacAdvisorProps {
   currentDate: Date;
+  aiProvider: 'gemini' | 'nvidia';
 }
 
 interface Message {
@@ -24,7 +25,7 @@ const PRESET_QUESTIONS = [
   "今天的趣味宜忌很特別，大師能詳細開悟我嗎？"
 ];
 
-export default function AlmanacAdvisor({ currentDate }: AlmanacAdvisorProps) {
+export default function AlmanacAdvisor({ currentDate, aiProvider }: AlmanacAdvisorProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: "bot",
@@ -59,10 +60,14 @@ export default function AlmanacAdvisor({ currentDate }: AlmanacAdvisorProps) {
     };
 
     try {
-      const response = await fetch("/api/almanac/query", {
+      const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: textToSend, dateContext })
+        body: JSON.stringify({
+          provider: aiProvider,
+          task: "query",
+          payload: { question: textToSend, dateContext }
+        })
       });
 
       if (!response.ok) {

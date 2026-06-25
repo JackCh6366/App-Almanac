@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "motion/react";
 
 interface ZodiacFortuneProps {
   currentDateStr: string; // "YYYY-MM-DD"
+  aiProvider: 'gemini' | 'nvidia';
 }
 
 const ZODIACS = [
@@ -27,7 +28,7 @@ const ZODIACS = [
   { name: "豬", branch: "亥", desc: "福澤深厚，知足常樂" }
 ];
 
-export default function ZodiacFortune({ currentDateStr }: ZodiacFortuneProps) {
+export default function ZodiacFortune({ currentDateStr, aiProvider }: ZodiacFortuneProps) {
   const [selectedZodiac, setSelectedZodiac] = useState("馬");
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<ZodiacReport | null>(null);
@@ -39,10 +40,14 @@ export default function ZodiacFortune({ currentDateStr }: ZodiacFortuneProps) {
     setReport(null);
 
     try {
-      const response = await fetch("/api/almanac/fortune-today", {
+      const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ zodiac: zodiacName, dateStr: currentDateStr })
+        body: JSON.stringify({
+          provider: aiProvider,
+          task: "fortune-today",
+          payload: { zodiac: zodiacName, dateStr: currentDateStr }
+        })
       });
 
       if (!response.ok) {

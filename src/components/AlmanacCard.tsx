@@ -17,6 +17,7 @@ import LunarConverter from "./LunarConverter";
 interface AlmanacCardProps {
   selectedDate: Date;
   onDateChange: (date: Date) => void;
+  aiProvider: 'gemini' | 'nvidia';
 }
 
 // 時辰對照
@@ -35,7 +36,7 @@ const SHICHEN_LIST = [
   { name: "亥時", hours: "21:00 - 23:00", element: "水", lucky: "吉" },
 ];
 
-export default function AlmanacCard({ selectedDate, onDateChange }: AlmanacCardProps) {
+export default function AlmanacCard({ selectedDate, onDateChange, aiProvider }: AlmanacCardProps) {
   const [dayData, setDayData] = useState<AlmanacDay | null>(null);
   const [solarTerm, setSolarTerm] = useState<any>(null);
   const [currentHourText, setCurrentHourText] = useState("");
@@ -80,14 +81,18 @@ export default function AlmanacCard({ selectedDate, onDateChange }: AlmanacCardP
   useEffect(() => {
     if (!dayData) return;
     setAuraLoading(true);
-    fetch("/api/almanac/today-aura", {
+    fetch("/api/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        dateStr: dayData.gregorianDate,
-        ganzhiDay: dayData.ganzhiDay,
-        lunarMonthDate: dayData.lunarMonthDate,
-        jianShen: dayData.jianShen,
+        provider: aiProvider,
+        task: "today-aura",
+        payload: {
+          dateStr: dayData.gregorianDate,
+          ganzhiDay: dayData.ganzhiDay,
+          lunarMonthDate: dayData.lunarMonthDate,
+          jianShen: dayData.jianShen,
+        }
       }),
     })
       .then((res) => {
@@ -107,7 +112,7 @@ export default function AlmanacCard({ selectedDate, onDateChange }: AlmanacCardP
         setTodayAura(buildTodayAuraFallbackLocal(dayData.gregorianDate));
         setAuraLoading(false);
       });
-  }, [dayData]);
+  }, [dayData, aiProvider]);
 
   // 每秒更新目前時間與時辰
   useEffect(() => {

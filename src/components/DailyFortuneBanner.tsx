@@ -11,9 +11,10 @@ import { motion, AnimatePresence } from "motion/react";
 
 interface DailyFortuneBannerProps {
   selectedDate: Date;
+  aiProvider: 'gemini' | 'nvidia';
 }
 
-export default function DailyFortuneBanner({ selectedDate }: DailyFortuneBannerProps) {
+export default function DailyFortuneBanner({ selectedDate, aiProvider }: DailyFortuneBannerProps) {
   const [fortuneData, setFortuneData] = useState<DailyFortuneResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +29,7 @@ export default function DailyFortuneBanner({ selectedDate }: DailyFortuneBannerP
       setError(null);
       
       // 嘗試從本地 Session 緩存提取，達到秒開效果
-      const cacheKey = `daily_fortune_${dateStr}`;
+      const cacheKey = `daily_fortune_${dateStr}_${aiProvider}`;
       const cached = sessionStorage.getItem(cacheKey);
       if (cached) {
         try {
@@ -44,15 +45,19 @@ export default function DailyFortuneBanner({ selectedDate }: DailyFortuneBannerP
       const almanac = getAlmanac(selectedDate);
       
       try {
-        const res = await fetch("/api/almanac/daily-fortune", {
+        const res = await fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            dateStr,
-            ganzhiDay: almanac.ganzhiDay,
-            ganzhiMonth: almanac.ganzhiMonth,
-            wuhang: almanac.wuhang,
-            conflictAnimal: almanac.conflictAnimal,
+            provider: aiProvider,
+            task: "daily-fortune",
+            payload: {
+              dateStr,
+              ganzhiDay: almanac.ganzhiDay,
+              ganzhiMonth: almanac.ganzhiMonth,
+              wuhang: almanac.wuhang,
+              conflictAnimal: almanac.conflictAnimal,
+            }
           }),
         });
 
@@ -74,7 +79,7 @@ export default function DailyFortuneBanner({ selectedDate }: DailyFortuneBannerP
     };
 
     fetchFortune();
-  }, [dateStr, selectedDate]);
+  }, [dateStr, selectedDate, aiProvider]);
 
   return (
     <div className="font-sans">

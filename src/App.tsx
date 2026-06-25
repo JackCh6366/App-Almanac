@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AlmanacCard from "./components/AlmanacCard";
 import Planner from "./components/Planner";
 import DailyFortuneBanner from "./components/DailyFortuneBanner";
@@ -14,7 +14,7 @@ import AlmanacAdvisor from "./components/AlmanacAdvisor";
 
 import { 
   CalendarDays, Sparkles, Compass, HelpCircle, 
-  BookOpen, MessageSquare, Flame, Star
+  BookOpen, MessageSquare, Flame, Star, Cpu
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -23,6 +23,16 @@ type TabId = "home" | "planner" | "temple" | "zodiac" | "festivals" | "chat";
 export default function App() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [activeTab, setActiveTab] = useState<TabId>("home");
+
+  // Global AI Provider State
+  const [aiProvider, setAiProvider] = useState<'gemini' | 'nvidia'>(() => {
+    return (localStorage.getItem("ai_provider") as 'gemini' | 'nvidia') || 'gemini';
+  });
+
+  const handleProviderChange = (provider: 'gemini' | 'nvidia') => {
+    setAiProvider(provider);
+    localStorage.setItem("ai_provider", provider);
+  };
 
   // 當期選取公曆字串，方便各組件連線
   const formattedDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
@@ -66,17 +76,29 @@ export default function App() {
                 </span>
               </div>
               <p className="text-[#8C8273] text-xs mt-1 tracking-wider font-sans">
-                融合古典干支星宿與 Gemini AI 智慧。每日運勢、良辰吉格、求籤正殿一站式集大成。
+                融合古典干支星宿與多 AI 智慧。每日運勢、良辰吉格、求籤正殿一站式集大成。
               </p>
             </div>
           </div>
 
-          {/* 指南宣示或背景 */}
-          <div className="text-center md:text-right hidden xl:block">
+          {/* AI 服務選擇器與系統標籤 */}
+          <div className="flex flex-col items-center md:items-end gap-2 shrink-0">
             <span className="text-[11px] text-[#8C8273] block uppercase tracking-widest font-mono">Lunar Almanac System v3.5</span>
-            <span className="text-sm text-[#B22222] font-extrabold mt-1 block">
-              心有一念正氣，天天皆是黃道吉日
-            </span>
+            
+            <div className="flex items-center gap-2 bg-[#FCF9F2]/10 border border-[#B22222]/30 px-3.5 py-1.5 rounded-xl shadow-inner mt-0.5">
+              <Cpu className="h-3.5 w-3.5 text-amber-400" />
+              <span className="text-xs text-[#8C8273] font-bold">AI 服務：</span>
+              <select
+                id="ai_provider_selector"
+                value={aiProvider}
+                onChange={(e) => handleProviderChange(e.target.value as 'gemini' | 'nvidia')}
+                className="bg-transparent text-[#FCF9F2] text-xs font-black focus:outline-none cursor-pointer border-none pr-1 focus:ring-0"
+                style={{ colorScheme: "dark" }}
+              >
+                <option value="gemini" className="bg-[#1A1A1A] text-[#FCF9F2]">Google Gemini (3.1-Flash)</option>
+                <option value="nvidia" className="bg-[#1A1A1A] text-[#FCF9F2]">NVIDIA NIM (Nemotron)</option>
+              </select>
+            </div>
           </div>
 
         </div>
@@ -136,35 +158,38 @@ export default function App() {
             >
               {activeTab === "home" && (
                 <div className="space-y-6">
-                  <DailyFortuneBanner selectedDate={selectedDate} />
+                  <DailyFortuneBanner selectedDate={selectedDate} aiProvider={aiProvider} />
                   <AlmanacCard 
                     selectedDate={selectedDate} 
                     onDateChange={setSelectedDate} 
+                    aiProvider={aiProvider}
                   />
                 </div>
               )}
 
               {activeTab === "planner" && (
-                <Planner />
+                <Planner aiProvider={aiProvider} />
               )}
 
               {activeTab === "temple" && (
-                <DivineTemple />
+                <DivineTemple aiProvider={aiProvider} />
               )}
 
               {activeTab === "zodiac" && (
                 <ZodiacFortune 
                   currentDateStr={formattedDateStr} 
+                  aiProvider={aiProvider}
                 />
               )}
 
               {activeTab === "festivals" && (
-                <SolarFestivals />
+                <SolarFestivals aiProvider={aiProvider} />
               )}
 
               {activeTab === "chat" && (
                 <AlmanacAdvisor 
                   currentDate={selectedDate} 
+                  aiProvider={aiProvider}
                 />
               )}
             </motion.div>

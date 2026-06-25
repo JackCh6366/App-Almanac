@@ -4,13 +4,15 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import { FORTUNE_LOTS } from "./src/data/fortuneLots";
+import analyzeHandler from "./api/analyze";
 
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3001;
 
 app.use(express.json());
+app.post("/api/analyze", analyzeHandler);
 
 // 初始化 Gemini API 客戶端
 // 遵照指南：必須為 server-side，必須帶有 User-Agent: 'aistudio-build'

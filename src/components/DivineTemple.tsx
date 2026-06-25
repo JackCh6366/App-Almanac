@@ -22,7 +22,11 @@ const DIVINE_TYPES = [
   { id: "健康", label: "求疾厄安康", icon: Activity, color: "bg-teal-50 text-teal-800 border-teal-200" },
 ];
 
-export default function DivineTemple() {
+interface DivineTempleProps {
+  aiProvider: 'gemini' | 'nvidia';
+}
+
+export default function DivineTemple({ aiProvider }: DivineTempleProps) {
   const [step, setStep] = useState<TempleStep>("ask");
   const [questionType, setQuestionType] = useState("綜合");
   const [customQuestion, setCustomQuestion] = useState("");
@@ -121,15 +125,19 @@ export default function DivineTemple() {
     setAiAnalysis(null);
 
     try {
-      const response = await fetch("/api/almanac/divine-explain", {
+      const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fortuneId: selectedLot.id,
-          title: selectedLot.title,
-          poem: selectedLot.poem,
-          type: questionType,
-          customQuestion: customQuestion
+          provider: aiProvider,
+          task: "divine-explain",
+          payload: {
+            fortuneId: selectedLot.id,
+            title: selectedLot.title,
+            poem: selectedLot.poem,
+            type: questionType,
+            customQuestion: customQuestion
+          }
         })
       });
 

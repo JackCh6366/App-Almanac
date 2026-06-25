@@ -23,7 +23,11 @@ const FESTIVALS = [
   { lunar: "十二月十六", name: "尾牙良辰", god: "土地公謝福恩 (尾牙)", desc: "年尾商家謝神感謝土地公一整年財氣蔭護，並辦尾牙宴款待员工辛勞。" }
 ];
 
-export default function SolarFestivals() {
+interface SolarFestivalsProps {
+  aiProvider: 'gemini' | 'nvidia';
+}
+
+export default function SolarFestivals({ aiProvider }: SolarFestivalsProps) {
   const [activeTab, setActiveTab] = useState<"terms" | "festivals">("terms");
   const [selectedTerm, setSelectedTerm] = useState<string>("立春");
 
@@ -37,10 +41,14 @@ export default function SolarFestivals() {
     setLoadingAdvice(true);
     setErrorAdvice(null);
     try {
-      const res = await fetch("/api/almanac/term-advice", {
+      const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ termName: curPeriod.name }),
+        body: JSON.stringify({
+          provider: aiProvider,
+          task: "term-advice",
+          payload: { termName: curPeriod.name }
+        }),
       });
       if (!res.ok) {
         throw new Error("向大師求教失敗");
